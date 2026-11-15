@@ -60,13 +60,13 @@ async function render() {
     const { hits, totalHits } = await getImagesByQuery(search, page);
     const totalPages = Math.ceil(totalHits / perPage);
     createGallery(hits);
+    scroll();
     if (page >= totalPages) {
       btnLoadMore.classList.add('is-hidden');
       iziToast.info({
         message: `We're sorry, but you've reached the end of search results.
 `,
       });
-      scroll();
     }
     page += 1;
   } catch (error) {
@@ -75,8 +75,9 @@ async function render() {
 }
 
 function scroll() {
-  const height = document.querySelector('.gallery');
-  const cardHeight = height.getBoundingClientRect().height;
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
 
   window.scrollBy({
     top: cardHeight * 2,
