@@ -19,37 +19,35 @@ const perPage = 15;
 
 form.addEventListener('submit', event => {
   event.preventDefault();
+  clearGallery();
+  hideLoadMoreButton();
+  page = 1;
   const formData = new FormData(event.target);
   if (formData.get('search-text') === '') {
-    return alert('Empty field!');
+    return iziToast.warning({ message: 'Empty field!' });
   } else {
     showLoader();
-    hideLoadMoreButton();
-    clearGallery();
-    try {
-      getImagesByQuery(formData.get('search-text'), page).then(({ hits }) => {
+    getImagesByQuery(formData.get('search-text'), page).then(({ hits }) => {
+      try {
         if (hits.length === 0) {
           iziToast.show({
             message:
               'Sorry, there are no images matching your search query. Please try again!',
           });
+          hideLoader();
           return;
         }
         createGallery(hits);
-        page += 1;
         showLoadMoreButton();
         search = formData.get('search-text');
         return search;
-      });
-    } catch {
-      error => {
-        iziToast
-          .show({
-            message: `${error.message}`,
-          })
-          .finally(() => hideLoader());
-      };
-    }
+      } catch (error) {
+        hideLoader();
+        iziToast.show({
+          message: `${error.message}`,
+        });
+      }
+    });
   }
 });
 
@@ -57,18 +55,18 @@ btnLoadMore.addEventListener('click', render);
 
 async function render() {
   try {
+    hideLoadMoreButton();
+    page += 1;
     const { hits, totalHits } = await getImagesByQuery(search, page);
     const totalPages = Math.ceil(totalHits / perPage);
     createGallery(hits);
     scroll();
+    showLoadMoreButton();
     if (page >= totalPages) {
-      btnLoadMore.classList.add('is-hidden');
       iziToast.info({
-        message: `We're sorry, but you've reached the end of search results.
-`,
+        message: `We're sorry, but you've reached the end of search results.`,
       });
     }
-    page += 1;
   } catch (error) {
     iziToast.warning({ message: `${error.message}` });
   }
