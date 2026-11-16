@@ -41,6 +41,7 @@ form.addEventListener('submit', async event => {
 
     createGallery(hits);
     if (page >= Math.ceil(totalHits / perPage)) {
+      hideLoader();
       return iziToast.info({
         message: `We're sorry, but you've reached the end of search results.`,
       });
