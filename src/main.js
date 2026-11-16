@@ -17,38 +17,35 @@ let page = 1;
 let search = '';
 const perPage = 15;
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   clearGallery();
   hideLoadMoreButton();
   page = 1;
   const formData = new FormData(event.target);
-  if (formData.get('search-text') === '') {
+  const query = formData.get('search-text').trim();
+  if (query === '') {
     return iziToast.warning({ message: 'Empty field!' });
-  } else {
-    showLoader();
-    getImagesByQuery(formData.get('search-text'), page).then(({ hits }) => {
-      try {
-        if (hits.length === 0) {
-          iziToast.show({
-            message:
-              'Sorry, there are no images matching your search query. Please try again!',
-          });
-          hideLoader();
-          return;
-        }
-        hideLoader();
-        createGallery(hits);
-        showLoadMoreButton();
-        search = formData.get('search-text');
-        return search;
-      } catch (error) {
-        hideLoader();
-        iziToast.show({
-          message: `${error.message}`,
-        });
-      }
-    });
+  }
+
+  showLoader();
+  try {
+    const { hits } = await getImagesByQuery(query, page);
+    if (hits.length === 0) {
+      iziToast.show({
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+      });
+      return;
+    }
+
+    createGallery(hits);
+    showLoadMoreButton();
+    search = query;
+  } catch (error) {
+    iziToast.show({ message: `${error.message}` });
+  } finally {
+    hideLoader();
   }
 });
 
@@ -72,6 +69,7 @@ async function render() {
       });
     }
   } catch (error) {
+    hideLoader();
     iziToast.warning({ message: `${error.message}` });
   }
 }
