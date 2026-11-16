@@ -37,6 +37,7 @@ form.addEventListener('submit', event => {
           hideLoader();
           return;
         }
+        hideLoader();
         createGallery(hits);
         showLoadMoreButton();
         search = formData.get('search-text');
@@ -55,14 +56,17 @@ btnLoadMore.addEventListener('click', render);
 
 async function render() {
   try {
+    showLoader();
     hideLoadMoreButton();
     page += 1;
     const { hits, totalHits } = await getImagesByQuery(search, page);
     const totalPages = Math.ceil(totalHits / perPage);
     createGallery(hits);
     scroll();
+    hideLoader();
     showLoadMoreButton();
     if (page >= totalPages) {
+      hideLoadMoreButton();
       iziToast.info({
         message: `We're sorry, but you've reached the end of search results.`,
       });
